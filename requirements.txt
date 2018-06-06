@@ -1,0 +1,4 @@
+pygame
+flask
+requests
+requests_oauth2

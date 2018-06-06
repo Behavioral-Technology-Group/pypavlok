@@ -1,11 +1,11 @@
 """
  Pygame base template for opening a window
- 
+
  Sample Python/Pygame Programs
  Simpson College Computer Science
  http://programarcadegames.com/
  http://simpson.edu/computer-science/
- 
+
  Explanation video: http://youtu.be/vRB_983kUMc
 
 -------------------------------------------------
@@ -14,39 +14,34 @@ Author for the Brickout game is Christian Bender
 That includes the classes Ball, Paddle, Brick, and BrickWall.
 
 """
- 
-import pygame
-import pypavlok
-from flask import Flask, request, redirect, session
 
- 
+import sys
+import os
+import logging
+import pygame
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/services")
+from PavlokActions import PavlokActions
+
+actions = PavlokActions()
+
+print("Testing if beep will work")
+actions.beep()
+
+
 # Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
-pygame.init()
-
 # Set the width and height of the screen [width, height]
 size = (700, 500)
 screen = pygame.display.set_mode(size)
 
-
-def vibrate():
-    if not session.get("access_token"):
-        return redirect("/pavlok/oauth2callback")
-    with requests.Session() as s:
-        s.auth = OAuth2BearerToken(session["access_token"])
-        data = {"reason" :"Python", "access_token": session["access_token"]}
-        r = s.post("https://pavlok-mvp.herokuapp.com/api/v1/stimuli/vibrate/" + "255", data=data)
-    r.raise_for_status()
-    return "The vibrate happened :)"
-
-
 """
-    This is a simple Ball class for respresenting a ball 
-    in the game. 
+    This is a simple Ball class for respresenting a ball
+    in the game.
 """
 class Ball(object):
     def __init__ (self, screen, radius,x,y):
@@ -95,14 +90,14 @@ class Ball(object):
         if ((ballX + self._radius) >= paddleX and ballX <= (paddleX + paddleW)) \
         and ((ballY + self._radius) >= paddleY and ballY <= (paddleY + paddleH)):
             self.__yVel *= -1
-            vibrate()
+            actions.vibrate()
 
         return False
 
-        
+
 """
     Simple class for representing a paddle
-"""        
+"""
 class Paddle (object):
     def __init__ (self, screen, width, height,x,y):
         self.__screen = screen
@@ -125,7 +120,7 @@ class Paddle (object):
         x,y = pygame.mouse.get_pos()
         if x >= 0 and x <= (self.__W - self._width):
             self._xLoc = x
- 
+
 """
     This class represents a simple Brick class.
     For representing bricks onto screen.
@@ -186,7 +181,7 @@ class Brick (pygame.sprite.Sprite):
 
 
 """
-    This is a simple class for representing a 
+    This is a simple class for representing a
     brick wall.
 """
 class BrickWall (pygame.sprite.Group):
@@ -206,7 +201,7 @@ class BrickWall (pygame.sprite.Group):
                 X += width + (width/ 7.0)
             Y += height + (height / 7.0)
             X = x
-        
+
     def add(self,brick):
         """
             adds a brick to this BrickWall (group)
@@ -231,7 +226,7 @@ class BrickWall (pygame.sprite.Group):
         for i in range(len(self._bricks)):
             if ((self._bricks[i] != None) and self._bricks[i].collide(ball)):
                 self._bricks[i] = None
-        
+
         # removes the None-elements from the brick list.
         for brick in self._bricks:
             if brick == None:
@@ -243,7 +238,7 @@ class BrickWall (pygame.sprite.Group):
         return len(self._bricks) == 0
     def collide (self, ball):
         """
-            check collisions between the ball and 
+            check collisions between the ball and
             any of the bricks.
         """
         for brick in self._bricks:
@@ -260,17 +255,17 @@ isGameOver = False # determines whether game is lose
 gameStatus = True # game is still running
 
 score = 0 # score for the game.
- 
+
 pygame.display.set_caption("Brickout-game")
- 
+
 # Loop until the user clicks the close button.
 done = False
- 
+
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
 
-# for displaying text in the game 
-pygame.font.init() # you have to call this at the start, 
+# for displaying text in the game
+pygame.font.init() # you have to call this at the start,
                    # if you want to use this module.
 
 # message for game over
@@ -285,35 +280,35 @@ mgScore = pygame.font.SysFont('Comic Sans MS', 60)
 textsurfaceGameOver = mgGameOver.render('Game Over!', False, (0, 0, 0))
 textsurfaceWin = mgWin.render("You win!",False,(0,0,0))
 textsurfaceScore = mgScore.render("score: "+str(score),False,(0,0,0))
-   
- 
+
+
 # -------- Main Program Loop -----------
 while not done:
     # --- Main event loop
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
- 
+
     # --- Game logic should go here
- 
+
     # --- Screen-clearing code goes here
- 
+
     # Here, we clear the screen to white. Don't put other drawing commands
     # above this, or they will be erased with this command.
- 
+
     # If you want a background image, replace this clear with blit'ing the
     # background image.
     screen.fill(WHITE)
- 
+
     # --- Drawing code should go here
-    
+
     """
         Because I use OOP in the game logic and the drawing code,
         are both in the same section.
     """
     if gameStatus:
 
-        # first draws ball for appropriate displaying the score. 
+        # first draws ball for appropriate displaying the score.
         brickWall.draw()
 
          # for counting and displaying the score
@@ -331,7 +326,7 @@ while not done:
         if ball.update(paddle, brickWall):
             isGameOver = True
             gameStatus = False
-        
+
         if brickWall.hasWin():
             gameStatus = False
 
@@ -346,12 +341,17 @@ while not done:
             screen.blit(textsurfaceWin,(0,0))
             textsurfaceScore = mgScore.render("score: "+str(score),False,(0,0,0))
             screen.blit(textsurfaceScore,(300,0))
-     
+
     # --- Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
- 
+
     # --- Limit to 60 frames per second
     clock.tick(60)
- 
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    pygame.init()
+    actions.vibrate()
+
 # Close the window and quit.
-pygame.quit()
+# pygame.quit()
