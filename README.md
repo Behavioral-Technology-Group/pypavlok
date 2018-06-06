@@ -40,3 +40,5 @@ sudo -H pip install hg+http://bitbucket.org/pygame/pygame
 # Run this command
 sh run.sh
 ```
+
+Note that you will need to navigate to http://localhost:5000 to authenticate your Pavlok with the browser.
